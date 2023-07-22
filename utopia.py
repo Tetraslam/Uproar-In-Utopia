@@ -20,9 +20,25 @@ from firebase_admin import db
 
 ref = db.reference("/")
 
-with open("accounts.json", "r") as f:
-	file_contents = json.load(f)
-ref.set(file_contents)
+# for key, value in ref.get().items():
+#     if(value["Government Type"] == "Dictatorship"):
+#         ref.child(key).update({"Index": 10})
+
+# FIREBASE STAT RETRIEVAL FUNCTIONS
+
+def getpolicylist(userID):
+  for key, value in ref.get().items():
+        if(value["Discord User ID"] == userID):
+          rawjson = ref.child(key).get()
+          policylog = rawjson["Policies"]
+          i = 0
+          listofpolicies = ""
+          while i<len(policylog):
+              addtolist = (policylog[i])
+              listofpolicies += " " + addtolist
+              i+=1
+          return listofpolicies
+
 
 intents = discord.Intents.default()
 intents.typing = True
@@ -41,6 +57,11 @@ bot = commands.Bot(command_prefix='!', intents = intents)
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord!')
+
+@bot.command(name = 'policy')
+async def policies(ctx):
+    sendpolicies = getpolicylist(str(ctx.author.id))
+    await ctx.send(sendpolicies)
 
 @bot.command(name='99')
 async def nine_nine(ctx):
