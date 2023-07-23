@@ -2,6 +2,7 @@
 import os
 import random
 from dotenv import load_dotenv
+import itertools
 
 # 1
 import discord
@@ -39,6 +40,29 @@ def getpolicylist(userID):
               i+=1
           return listofpolicies
 
+def getstat(userID, statname):
+    for key, value in ref.get().items():
+        if(value["Discord User ID"] == userID):
+            rawjson = ref.child(key).get()
+            stat = rawjson[statname]
+            return stat
+        else:
+            print("user not found")
+
+def getaccount(userID):
+    for key, value in ref.get().items():
+        if(value["Discord User ID"] == userID):
+            rawjson = ref.child(key).get()
+            listofstats = ""
+            j=0
+            out = dict(itertools.islice(rawjson.items(), 43))
+            listprint = ""
+            for items in out:
+                listprint+="\n" + items + ": " + str(out.get(items))
+
+            return(str(listprint))
+
+
 
 intents = discord.Intents.default()
 intents.typing = True
@@ -63,6 +87,16 @@ async def policies(ctx):
     sendpolicies = getpolicylist(str(ctx.author.id))
     await ctx.send(sendpolicies)
 
+@bot.command(name = 'approval')
+async def approval(ctx):
+    sendapproval = getstat(str(ctx.author.id), "Approval")
+    await ctx.send(str(sendapproval))
+
+@bot.command(name = 'account')
+async def account(ctx):
+    sendaccount = getaccount(str(ctx.author.id))
+    await ctx.send("```" + str(sendaccount) + "```")
+
 @bot.command(name='99')
 async def nine_nine(ctx):
     brooklyn_99_quotes = [
@@ -76,14 +110,6 @@ async def nine_nine(ctx):
 
     response = random.choice(brooklyn_99_quotes)
     await ctx.send(response)
-
-@bot.command(name='roll', help='Simulates rolling dice.')
-async def roll(ctx, number_of_dice: int, number_of_sides: int):
-    dice = [
-        str(random.choice(range(1, number_of_sides + 1)))
-        for _ in range(number_of_dice)
-    ]
-    await ctx.send(', '.join(dice))
 
 
 bot.run(TOKEN)
